@@ -3,7 +3,6 @@
     class="message"
     :class="{ 'from-user': owner }"
   > {{ message.text }}
-
     <br><span class="sender">from UID {{ message.sender }}}</span>
 
   </div>
