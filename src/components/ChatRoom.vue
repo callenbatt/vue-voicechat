@@ -9,7 +9,11 @@
           <li
             v-for="message of messages"
             :key="message.id"
-          > {{message.text}}
+          >
+            <ChatMessage
+              :message="message"
+              :owner="user.uid === message.sender"
+            />
           </li>
         </ul>
 
@@ -32,11 +36,13 @@
 </template>
 <script>
 import { db } from "../firebase";
-import UserComponent from "../components/UserComponent.vue";
+import UserComponent from "./UserComponent.vue";
+import ChatMessage from "./ChatMessage.vue";
 
 export default {
   components: {
     UserComponent,
+    ChatMessage,
   },
   data() {
     return {
@@ -75,3 +81,20 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  background: #efefef;
+  padding: 10px;
+  border-radius: 0;
+}
+li {
+  display: flex;
+}
+</style>
