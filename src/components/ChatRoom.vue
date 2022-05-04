@@ -24,9 +24,28 @@
           name="newMessageText"
           id=""
         >
+        <hr>
+
+        <h5> Record Audio </h5>
+        <button
+          class="button is-info"
+          v-if="!recorder"
+          @click="record()"
+        >Record</button>
+        <button
+          class="button is-danger"
+          v-else
+          @click="stop()"
+        >Stop</button>
+
+        <audio
+          v-if="newAudio"
+          :src="newAudioUrl"
+          controls
+        ></audio>
 
         <button
-          :disabled="!newMessageText || loading"
+          :disabled="(!newMessageText && !newAudio) || loading"
           class="button is-success"
           @click="addMessage(user.uid)"
         >send</button>
@@ -49,6 +68,8 @@ export default {
       newMessageText: "",
       loading: false,
       messages: [],
+      newAudio: null,
+      recorder: null,
     };
   },
   computed: {
@@ -57,6 +78,9 @@ export default {
     },
     messagesCollection() {
       return db.doc(`chats/${this.chatId}`).collection("messages");
+    },
+    newAudioUrl() {
+      return URL.createObjectURL(this.newAudio);
     },
   },
   firestore() {
@@ -77,6 +101,35 @@ export default {
       });
       this.loading = false;
       this.newMessageText = "";
+    },
+
+    async record() {
+      this.newAudio = null;
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true,
+      });
+
+      const options = { mimeType: "audio/webm" };
+
+      const recordedChunks = [];
+      this.recorder = new MediaRecorder(stream, options);
+      this.recorder.addEventListener("dataavailable", (e) => {
+        if (e.data.size > 0) {
+          recordedChunks.push(e.data);
+        }
+      });
+      this.recorder.addEventListener("stop", () => {
+        this.newAudio = new Blob(recordedChunks);
+      });
+
+      this.recorder.start();
+    },
+
+    async stop() {
+      this.recorder.stop();
+      this.recorder = null;
     },
   },
 };
