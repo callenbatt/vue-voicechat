@@ -54,7 +54,7 @@
   </main>
 </template>
 <script>
-import { db } from "../firebase";
+import { db, storage } from "../firebase";
 import UserComponent from "./UserComponent.vue";
 import ChatMessage from "./ChatMessage.vue";
 
@@ -91,16 +91,27 @@ export default {
   methods: {
     async addMessage(uid) {
       this.loading = true;
-
+      let audioURL = null;
       const { id: messageId } = this.messagesCollection.doc();
+
+      if (this.newAudio) {
+        const storageRef = storage
+          .ref("chats")
+          .child(this.chatId)
+          .child(`${messageId}.wav`);
+        await storageRef.put(this.newAudio);
+        audioURL = await storageRef.getDownloadURL();
+      }
 
       await this.messagesCollection.doc(messageId).set({
         text: this.newMessageText,
         sender: uid,
         createdAt: Date.now(),
+        audioURL,
       });
       this.loading = false;
       this.newMessageText = "";
+      audioURL = null;
     },
 
     async record() {
